@@ -1,75 +1,137 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="mb-4">Reportes y Estadísticas</h2>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-bar-graph text-primary"></i> Reportes y Estadísticas</h2>
+    <button onclick="window.print()" class="btn btn-outline-dark d-print-none"><i class="bi bi-printer"></i> Imprimir Reportes</button>
+</div>
 
-<div class="row">
+<div class="row mb-4">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Stock Actual por Tanque</div>
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-dark text-white fw-bold"><i class="bi bi-database"></i> Estado Actual de Tanques</div>
             <div class="card-body p-0">
-                <table class="table table-striped mb-0">
-                    <thead>
-                        <tr>
-                            <th>Tanque</th>
-                            <th>Tipo</th>
-                            <th>Stock</th>
-                            <th>Capacidad</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t in tanques %}
-                        <tr>
-                            <td>{{ t.identificador }}</td>
-                            <td>{{ t.tipo_carburante }}</td>
-                            <td>
-                                {% if t.stock_actual < t.stock_minimo %}
-                                    <span class="text-danger fw-bold">{{ t.stock_actual }} L</span>
-                                {% else %}
-                                    {{ t.stock_actual }} L
-                                {% endif %}
-                            </td>
-                            <td>{{ t.capacidad_maxima }} L</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 align-middle text-center">
+                        <thead>
+                            <tr>
+                                <th>Tanque</th>
+                                <th>Tipo</th>
+                                <th>Stock Actual</th>
+                                <th>Ocupación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set ns = namespace(total_stock=0) %}
+                            {% for t in tanques %}
+                            {% set ns.total_stock = ns.total_stock + t.stock_actual %}
+                            {% set pct = (t.stock_actual / t.capacidad_maxima * 100) | round(1) %}
+                            <tr>
+                                <td class="fw-bold">{{ t.identificador }}</td>
+                                <td>{{ t.tipo_carburante }}</td>
+                                <td>
+                                    {% if t.stock_actual < t.stock_minimo %}
+                                        <span class="badge bg-danger fs-6">{{ "{:,.1f}".format(t.stock_actual) }} L</span>
+                                    {% else %}
+                                        <span class="badge bg-success fs-6">{{ "{:,.1f}".format(t.stock_actual) }} L</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ pct }}%</td>
+                            </tr>
+                            {% endfor %}
+                            <tr class="table-dark">
+                                <td colspan="2" class="text-end fw-bold">TOTAL STOCK GLOBAL:</td>
+                                <td colspan="2" class="fw-bold fs-5">{{ "{:,.1f}".format(ns.total_stock) }} L</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Ventas Limitadas o Bloqueadas</div>
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-danger text-white fw-bold"><i class="bi bi-shield-exclamation"></i> Ventas con Restricción (Limitadas/Bloqueadas)</div>
             <div class="card-body p-0">
-                <table class="table table-striped mb-0">
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Estado</th>
-                            <th>Autorizado / Solicitado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for v in ventas if v.estado_venta in ['Limitada', 'Bloqueada'] %}
-                        <tr>
-                            <td>{{ v.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
-                            <td>{{ v.cliente.placa_vehiculo }}</td>
-                            <td>
-                                {% if v.estado_venta == 'Limitada' %}
-                                    <span class="badge bg-warning text-dark">Limitada</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Bloqueada</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ v.litros_autorizados }} / {{ v.litros_solicitados }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
+                    <table class="table table-striped table-hover mb-0 align-middle text-center">
+                        <thead class="sticky-top bg-white">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Estado</th>
+                                <th>Despachado / Pedido</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set count_restricciones = 0 %}
+                            {% for v in ventas if v.estado_venta in ['Limitada', 'Bloqueada'] %}
+                            {% set count_restricciones = count_restricciones + 1 %}
+                            <tr>
+                                <td><small>{{ v.fecha_hora.strftime('%d/%m %H:%M') }}</small></td>
+                                <td><span class="badge bg-dark">{{ v.cliente.placa_vehiculo }}</span></td>
+                                <td>
+                                    {% if v.estado_venta == 'Limitada' %}
+                                        <span class="badge bg-warning text-dark">Limitada</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Bloqueada</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ "{:,.1f}".format(v.litros_autorizados) }} / {{ "{:,.1f}".format(v.litros_solicitados) }} L</td>
+                            </tr>
+                            {% endfor %}
+                            {% if count_restricciones == 0 %}
+                            <tr><td colspan="4" class="text-muted py-4">No hay ventas restringidas recientes.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white fw-bold"><i class="bi bi-bar-chart-steps"></i> Resumen de Todas las Ventas</div>
+            <div class="card-body">
+                <div class="row text-center mb-4">
+                    {% set total_auth = ventas | selectattr('estado_venta', 'equalto', 'Autorizada') | list | length %}
+                    {% set total_lim = ventas | selectattr('estado_venta', 'equalto', 'Limitada') | list | length %}
+                    {% set total_bloq = ventas | selectattr('estado_venta', 'equalto', 'Bloqueada') | list | length %}
+                    {% set litros_despachados = ventas | sum(attribute='litros_autorizados') %}
+                    
+                    <div class="col-md-3">
+                        <h4 class="text-success">{{ total_auth }}</h4>
+                        <p class="text-muted text-uppercase small fw-bold">Autorizadas</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-warning">{{ total_lim }}</h4>
+                        <p class="text-muted text-uppercase small fw-bold">Limitadas</p>
+                    </div>
+                    <div class="col-md-3">
+                        <h4 class="text-danger">{{ total_bloq }}</h4>
+                        <p class="text-muted text-uppercase small fw-bold">Bloqueadas</p>
+                    </div>
+                    <div class="col-md-3 border-start">
+                        <h4 class="text-primary">{{ "{:,.1f}".format(litros_despachados) }} L</h4>
+                        <p class="text-muted text-uppercase small fw-bold">Total Litros Despachados</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    body { background-color: white; }
+    nav, footer { display: none !important; }
+    .card { border: 1px solid #ddd !important; box-shadow: none !important; break-inside: avoid; }
+    .container { max-width: 100% !important; margin: 0 !important; }
+    .table-responsive { overflow-y: visible !important; max-height: none !important; }
+}
+</style>
 {% endblock %}

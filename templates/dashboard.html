@@ -3,95 +3,143 @@
 {% block content %}
 <h2 class="mb-4">Dashboard de Gestión</h2>
 
-<div class="row">
-    <div class="col-md-3">
+<div class="row mb-4">
+    <div class="col-md-2">
         <div class="card metric-card">
-            <i class="bi bi-people icon"></i>
-            <h5>Clientes</h5>
+            <i class="bi bi-people icon text-primary"></i>
+            <h6>Total Clientes</h6>
             <h3>{{ total_clientes }}</h3>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-md-2">
         <div class="card metric-card">
-            <i class="bi bi-droplet icon"></i>
-            <h5>Tanques</h5>
+            <i class="bi bi-person-check icon text-success"></i>
+            <h6>Activos</h6>
+            <h3>{{ clientes_activos }}</h3>
+        </div>
+    </div>
+    <div class="col-md-2">
+        <div class="card metric-card">
+            <i class="bi bi-database icon text-info"></i>
+            <h6>Tanques</h6>
             <h3>{{ total_tanques }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card metric-card">
-            <i class="bi bi-bar-chart icon"></i>
-            <h5>Stock Total (L)</h5>
-            <h3>{{ stock_total }}</h3>
+            <i class="bi bi-bar-chart icon text-dark"></i>
+            <h6>Stock Total (L)</h6>
+            <h3>{{ "{:,.1f}".format(stock_total) }}</h3>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card metric-card">
-            <i class="bi bi-check-circle icon text-success"></i>
-            <h5>Ventas Autorizadas</h5>
+            <i class="bi bi-box-arrow-in-down icon text-primary"></i>
+            <h6>Ingresos Reg.</h6>
+            <h3>{{ ingresos_registrados }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card metric-card bg-success text-white">
+            <i class="bi bi-check-circle icon text-white"></i>
+            <h6>Ventas Autorizadas</h6>
             <h3>{{ ventas_autorizadas }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card metric-card bg-warning text-dark">
+            <i class="bi bi-exclamation-triangle icon text-dark"></i>
+            <h6>Ventas Limitadas</h6>
+            <h3>{{ ventas_limitadas }}</h3>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card metric-card bg-danger text-white">
+            <i class="bi bi-x-circle icon text-white"></i>
+            <h6>Ventas Bloqueadas</h6>
+            <h3>{{ ventas_bloqueadas }}</h3>
         </div>
     </div>
 </div>
 
 <div class="row mt-4">
-    <div class="col-md-6">
-        <div class="card">
+    <!-- Alertas -->
+    <div class="col-md-4">
+        <div class="card h-100">
             <div class="card-header bg-danger text-white">
-                Alertas de Stock Mínimo
+                <i class="bi bi-bell-fill"></i> Alertas del Sistema
             </div>
-            <div class="card-body">
-                {% if alertas_stock %}
-                    <ul class="list-group">
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% if alertas_stock %}
                         {% for tanque in alertas_stock %}
                             <li class="list-group-item list-group-item-danger d-flex justify-content-between align-items-center">
                                 Tanque {{ tanque.identificador }} ({{ tanque.tipo_carburante }})
-                                <span class="badge bg-danger rounded-pill">{{ tanque.stock_actual }} L (Min: {{ tanque.stock_minimo }})</span>
+                                <span class="badge bg-danger rounded-pill">{{ tanque.stock_actual }}L (Min: {{ tanque.stock_minimo }}L)</span>
                             </li>
                         {% endfor %}
-                    </ul>
-                {% else %}
-                    <p class="text-success mb-0"><i class="bi bi-check-circle"></i> Todos los tanques tienen stock suficiente.</p>
-                {% endif %}
+                    {% else %}
+                        <li class="list-group-item text-success"><i class="bi bi-check-circle"></i> Stock de tanques normal.</li>
+                    {% endif %}
+
+                    {% if clientes_suspendidos > 0 %}
+                        <li class="list-group-item list-group-item-warning">
+                            <i class="bi bi-exclamation-circle"></i> Hay <strong>{{ clientes_suspendidos }}</strong> clientes suspendidos en el sistema.
+                        </li>
+                    {% endif %}
+                </ul>
             </div>
         </div>
     </div>
     
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">
-                Últimas Ventas
+    <!-- Últimas 8 ventas -->
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history"></i> Últimas Ventas</span>
+                <a href="{{ url_for('ventas') }}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
             </div>
             <div class="card-body p-0">
-                <table class="table table-striped mb-0">
-                    <thead>
-                        <tr>
-                            <th>Cliente</th>
-                            <th>Estado</th>
-                            <th>Litros</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for venta in ultimas_ventas %}
-                        <tr>
-                            <td>{{ venta.cliente.placa_vehiculo }}</td>
-                            <td>
-                                {% if venta.estado_venta == 'Autorizada' %}
-                                    <span class="badge bg-success">Autorizada</span>
-                                {% elif venta.estado_venta == 'Limitada' %}
-                                    <span class="badge bg-warning text-dark">Limitada</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Bloqueada</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ venta.litros_autorizados }} / {{ venta.litros_solicitados }}</td>
-                        </tr>
-                        {% endfor %}
-                        {% if not ultimas_ventas %}
-                        <tr><td colspan="3" class="text-center">No hay ventas registradas.</td></tr>
-                        {% endif %}
-                    </tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0 text-center align-middle">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente (Placa)</th>
+                                <th>Tanque</th>
+                                <th>Solicitado</th>
+                                <th>Autorizado</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for venta in ultimas_ventas %}
+                            <tr>
+                                <td><small>{{ venta.fecha_hora.strftime('%d/%m %H:%M') }}</small></td>
+                                <td>{{ venta.cliente.placa_vehiculo }}</td>
+                                <td>{{ venta.tanque.identificador }}</td>
+                                <td>{{ venta.litros_solicitados }}L</td>
+                                <td><strong>{{ venta.litros_autorizados }}L</strong></td>
+                                <td>
+                                    {% if venta.estado_venta == 'Autorizada' %}
+                                        <span class="badge bg-success">Autorizada</span>
+                                    {% elif venta.estado_venta == 'Limitada' %}
+                                        <span class="badge bg-warning text-dark">Limitada</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Bloqueada</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            {% if not ultimas_ventas %}
+                            <tr><td colspan="6" class="text-center text-muted">No hay ventas registradas.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

@@ -10,9 +10,16 @@ body {
   background-color: var(--light-bg);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text-dark);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* Sidebar and Navbar */
+.navbar {
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
 .navbar-brand {
   font-weight: bold;
   color: var(--primary-color) !important;
@@ -21,6 +28,7 @@ body {
 .nav-link {
   color: var(--primary-color);
   font-weight: 500;
+  transition: all 0.3s;
 }
 
 .nav-link:hover, .nav-link.active {
@@ -29,11 +37,15 @@ body {
   border-radius: 5px;
 }
 
+main {
+  flex: 1;
+}
+
 /* Cards */
 .card {
   border: none;
   border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   margin-bottom: 20px;
 }
 
@@ -47,10 +59,16 @@ body {
 .metric-card {
   text-align: center;
   padding: 20px;
+  transition: transform 0.2s;
+}
+
+.metric-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
 }
 
 .metric-card .icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: var(--secondary-color);
   margin-bottom: 10px;
 }
@@ -66,7 +84,7 @@ body {
   background: var(--white);
   padding: 20px;
   border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .table thead th {
@@ -103,4 +121,20 @@ body {
 .btn-primary:hover {
   background-color: var(--secondary-color);
   border-color: var(--secondary-color);
+}
+
+/* Progress bar for tanks */
+.tank-progress {
+  height: 25px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+footer {
+  background-color: var(--white);
+  border-top: 1px solid #e9ecef;
+  padding: 15px 0;
+  text-align: center;
+  color: #6c757d;
+  font-size: 0.9rem;
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATVA Petrol - Gestión</title>
+    <title>ATVA Petrol - Sistema de Venta Controlada</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
@@ -11,37 +11,24 @@
 <body>
 
     {% if session.get('logged_in') %}
-    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm mb-4">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white mb-4">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('dashboard') }}">
-                <i class="bi bi-droplet-fill text-primary"></i> ATVA Petrol
+            <a class="navbar-brand d-flex flex-column align-items-start" href="{{ url_for('dashboard') }}">
+                <span><i class="bi bi-droplet-fill text-primary"></i> ATVA Petrol</span>
+                <small class="text-muted" style="font-size: 0.7rem; font-weight: normal;">Sistema de Venta Controlada</small>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('empresa') }}">Empresa</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('tanques') }}">Tanques</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('clientes') }}">Clientes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('ingresos') }}">Ingresos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('ventas') }}">Ventas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('reportes') }}">Reportes</a>
-                    </li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('empresa') }}"><i class="bi bi-building"></i> Empresa</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('tanques') }}"><i class="bi bi-database"></i> Tanques</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('clientes') }}"><i class="bi bi-people"></i> Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('ingresos') }}"><i class="bi bi-box-arrow-in-down"></i> Ingresos</a></li>
+                    <li class="nav-item"><a class="nav-link fw-bold text-success" href="{{ url_for('ventas') }}"><i class="bi bi-fuel-pump"></i> Ventas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{{ url_for('reportes') }}"><i class="bi bi-file-earmark-bar-graph"></i> Reportes</a></li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
@@ -53,11 +40,11 @@
     </nav>
     {% endif %}
 
-    <div class="container">
+    <main class="container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    <div class="alert alert-{{ category }} alert-dismissible fade show shadow-sm" role="alert">
                         {{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
@@ -66,8 +53,16 @@
         {% endwith %}
 
         {% block content %}{% endblock %}
-    </div>
+    </main>
+
+    <footer class="mt-5">
+        <div class="container">
+            <p class="mb-0">Proyecto académico - Ingeniería de Software</p>
+            <small>ATVA Petrol &copy; 2026</small>
+        </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
 </body>
 </html>

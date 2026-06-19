@@ -4,34 +4,59 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2>Registro de Ingresos de Carburante</h2>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ingresoModal">
-        <i class="bi bi-box-arrow-in-down"></i> Registrar Ingreso
+        <i class="bi bi-box-arrow-in-down"></i> Nuevo Ingreso
     </button>
 </div>
 
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form method="GET" class="row align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted">Filtrar por Tanque</label>
+                <select name="tanque_id" class="form-select">
+                    <option value="">Todos los tanques</option>
+                    {% for t in tanques %}
+                        <option value="{{ t.id_tanque }}" {% if tanque_filtro|string == t.id_tanque|string %}selected{% endif %}>
+                            {{ t.identificador }} ({{ t.tipo_carburante }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-outline-primary w-100"><i class="bi bi-funnel"></i> Filtrar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="table-container">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle">
         <thead>
             <tr>
                 <th>Fecha/Hora</th>
-                <th>Tanque</th>
+                <th>Tanque Destino</th>
                 <th>Litros Ingresados</th>
-                <th>Factura/Remisión</th>
+                <th>Factura / Remisión</th>
                 <th>Proveedor</th>
             </tr>
         </thead>
         <tbody>
             {% for ingreso in ingresos %}
             <tr>
-                <td>{{ ingreso.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ ingreso.tanque.identificador }} ({{ ingreso.tanque.tipo_carburante }})</td>
-                <td><strong class="text-success">+{{ ingreso.litros_ingresados }} L</strong></td>
+                <td><i class="bi bi-calendar3 text-muted"></i> {{ ingreso.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                    <span class="fw-bold">{{ ingreso.tanque.identificador }}</span><br>
+                    <small class="text-muted">{{ ingreso.tanque.tipo_carburante }}</small>
+                </td>
+                <td>
+                    <span class="badge bg-success fs-6"><i class="bi bi-arrow-up-circle"></i> +{{ "{:,.1f}".format(ingreso.litros_ingresados) }} L</span>
+                </td>
                 <td>{{ ingreso.numero_factura }}</td>
                 <td>{{ ingreso.proveedor }}</td>
             </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted">No hay registros de ingresos.</td></tr>
             {% endfor %}
-            {% if not ingresos %}
-            <tr><td colspan="5" class="text-center">No hay registros de ingresos.</td></tr>
-            {% endif %}
         </tbody>
     </table>
 </div>
@@ -40,37 +65,42 @@
 <div class="modal fade" id="ingresoModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Registrar Nuevo Ingreso</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-box-arrow-in-down"></i> Registrar Ingreso</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('ingresos') }}" method="POST">
                 <div class="modal-body">
+                    <div class="alert alert-info py-2">
+                        <i class="bi bi-info-circle"></i> Al registrar un ingreso, el stock del tanque se incrementará automáticamente.
+                    </div>
                     <div class="mb-3">
-                        <label>Tanque Destino</label>
-                        <select name="id_tanque" class="form-control" required>
+                        <label class="form-label fw-bold">Tanque Destino <span class="text-danger">*</span></label>
+                        <select name="id_tanque" class="form-select" required>
                             <option value="">Seleccione un tanque...</option>
                             {% for t in tanques %}
-                                <option value="{{ t.id_tanque }}">{{ t.identificador }} ({{ t.tipo_carburante }}) - Stock: {{ t.stock_actual }}L</option>
+                                <option value="{{ t.id_tanque }}">
+                                    {{ t.identificador }} - {{ t.tipo_carburante }} (Disp: {{ "{:,.1f}".format(t.capacidad_maxima - t.stock_actual) }}L libres)
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label>Litros Ingresados</label>
-                        <input type="number" step="0.1" name="litros_ingresados" class="form-control" required>
+                        <label class="form-label fw-bold">Litros Ingresados <span class="text-danger">*</span></label>
+                        <input type="number" step="0.1" min="1" name="litros_ingresados" class="form-control form-control-lg" placeholder="Ej: 5000" required>
                     </div>
                     <div class="mb-3">
-                        <label>Número de Factura o Remisión</label>
+                        <label class="form-label fw-bold">Número de Factura o Remisión <span class="text-danger">*</span></label>
                         <input type="text" name="numero_factura" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label>Proveedor</label>
-                        <input type="text" name="proveedor" class="form-control" required>
+                        <label class="form-label fw-bold">Proveedor <span class="text-danger">*</span></label>
+                        <input type="text" name="proveedor" class="form-control" placeholder="Nombre de la empresa proveedora" required>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Registrar</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Registrar Ingreso</button>
                 </div>
             </form>
         </div>

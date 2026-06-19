@@ -2,48 +2,53 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Historial de Ventas</h2>
+    <h2>Historial de Ventas Controladas</h2>
     <a href="{{ url_for('nueva_venta') }}" class="btn btn-success">
         <i class="bi bi-cart-plus"></i> Nueva Venta
     </a>
 </div>
 
 <div class="table-container">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle">
         <thead>
             <tr>
                 <th>Fecha/Hora</th>
                 <th>Cliente (Placa)</th>
-                <th>Tanque</th>
-                <th>Solicitado (L)</th>
-                <th>Autorizado (L)</th>
+                <th>Tanque / Tipo</th>
+                <th class="text-center">Solicitado</th>
+                <th class="text-center">Autorizado</th>
                 <th>Estado</th>
-                <th>Mensaje</th>
+                <th>Mensaje Validación</th>
             </tr>
         </thead>
         <tbody>
             {% for venta in ventas %}
             <tr class="{% if venta.estado_venta == 'Bloqueada' %}table-danger{% elif venta.estado_venta == 'Limitada' %}table-warning{% endif %}">
-                <td>{{ venta.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>{{ venta.cliente.placa_vehiculo }}</td>
-                <td>{{ venta.tanque.identificador }}</td>
-                <td>{{ venta.litros_solicitados }}</td>
-                <td><strong>{{ venta.litros_autorizados }}</strong></td>
+                <td><small><i class="bi bi-clock"></i> {{ venta.fecha_hora.strftime('%d/%m/%Y %H:%M') }}</small></td>
+                <td>
+                    <span class="fw-bold">{{ venta.cliente.nombre_razon_social }}</span><br>
+                    <span class="badge bg-dark">{{ venta.cliente.placa_vehiculo }}</span>
+                </td>
+                <td>
+                    {{ venta.tanque.identificador }}<br>
+                    <small class="text-muted">{{ venta.tanque.tipo_carburante }}</small>
+                </td>
+                <td class="text-center">{{ "{:,.1f}".format(venta.litros_solicitados) }} L</td>
+                <td class="text-center fw-bold">{{ "{:,.1f}".format(venta.litros_autorizados) }} L</td>
                 <td>
                     {% if venta.estado_venta == 'Autorizada' %}
-                        <span class="badge bg-success">Autorizada</span>
+                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Autorizada</span>
                     {% elif venta.estado_venta == 'Limitada' %}
-                        <span class="badge bg-warning text-dark">Limitada</span>
+                        <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle"></i> Limitada</span>
                     {% else %}
-                        <span class="badge bg-danger">Bloqueada</span>
+                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> Bloqueada</span>
                     {% endif %}
                 </td>
-                <td><small>{{ venta.mensaje_validacion }}</small></td>
+                <td style="max-width: 250px;"><small class="text-muted">{{ venta.mensaje_validacion }}</small></td>
             </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted">No hay ventas registradas en el sistema.</td></tr>
             {% endfor %}
-            {% if not ventas %}
-            <tr><td colspan="7" class="text-center">No hay ventas registradas.</td></tr>
-            {% endif %}
         </tbody>
     </table>
 </div>

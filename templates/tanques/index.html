@@ -9,36 +9,56 @@
 </div>
 
 <div class="table-container">
-    <table class="table table-hover">
+    <table class="table table-hover align-middle">
         <thead>
             <tr>
                 <th>Identificador</th>
                 <th>Tipo</th>
-                <th>Capacidad Máxima</th>
-                <th>Stock Actual</th>
-                <th>Stock Mínimo</th>
+                <th>Capacidad Máx.</th>
+                <th>Stock Actual / Nivel</th>
+                <th>Mínimo</th>
+                <th>Estado</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for tanque in tanques %}
-            <tr class="{% if tanque.stock_actual < tanque.stock_minimo %}text-danger-row{% endif %}">
-                <td>{{ tanque.identificador }}</td>
+            {% set porcentaje = (tanque.stock_actual / tanque.capacidad_maxima * 100) | round(1) %}
+            <tr>
+                <td class="fw-bold text-primary">{{ tanque.identificador }}</td>
                 <td>{{ tanque.tipo_carburante }}</td>
-                <td>{{ tanque.capacidad_maxima }} L</td>
+                <td>{{ "{:,.1f}".format(tanque.capacidad_maxima) }}L</td>
+                <td style="width: 30%;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span><strong>{{ "{:,.1f}".format(tanque.stock_actual) }}L</strong></span>
+                        <span class="text-muted small">{{ porcentaje }}%</span>
+                    </div>
+                    <div class="progress tank-progress">
+                        {% if tanque.stock_actual < tanque.stock_minimo %}
+                            <div class="progress-bar bg-danger progress-bar-striped" style="width: {{ porcentaje }}%">CRÍTICO</div>
+                        {% elif porcentaje < 30 %}
+                            <div class="progress-bar bg-warning text-dark" style="width: {{ porcentaje }}%">BAJO</div>
+                        {% else %}
+                            <div class="progress-bar bg-success" style="width: {{ porcentaje }}%">NORMAL</div>
+                        {% endif %}
+                    </div>
+                </td>
+                <td>{{ "{:,.1f}".format(tanque.stock_minimo) }}L</td>
                 <td>
-                    <strong>{{ tanque.stock_actual }} L</strong>
                     {% if tanque.stock_actual < tanque.stock_minimo %}
-                        <i class="bi bi-exclamation-triangle text-danger" title="Stock por debajo del mínimo"></i>
+                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> Bajo Mínimo</span>
+                    {% else %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Óptimo</span>
                     {% endif %}
                 </td>
-                <td>{{ tanque.stock_minimo }} L</td>
                 <td>
-                    <a href="{{ url_for('eliminar_tanque', id=tanque.id_tanque) }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que desea eliminar este tanque?');">
+                    <a href="{{ url_for('eliminar_tanque', id=tanque.id_tanque) }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Seguro que desea eliminar el tanque {{ tanque.identificador }}?');">
                         <i class="bi bi-trash"></i>
                     </a>
                 </td>
             </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted">No hay tanques registrados en el sistema.</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -48,35 +68,37 @@
 <div class="modal fade" id="crearTanqueModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Nuevo Tanque</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Nuevo Tanque</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('crear_tanque') }}" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Identificador</label>
+                        <label class="form-label">Identificador (Ej. T-01)</label>
                         <input type="text" name="identificador" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label>Tipo de Carburante</label>
+                        <label class="form-label">Tipo de Carburante</label>
                         <select name="tipo_carburante" class="form-control" required>
-                            <option value="Gasolina">Gasolina</option>
+                            <option value="Gasolina Especial">Gasolina Especial</option>
+                            <option value="Gasolina Premium">Gasolina Premium</option>
                             <option value="Diesel">Diesel</option>
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label>Capacidad Máxima (Litros)</label>
-                        <input type="number" step="0.1" name="capacidad_maxima" class="form-control" required>
+                        <label class="form-label">Capacidad Máxima (Litros)</label>
+                        <input type="number" step="0.1" min="100" name="capacidad_maxima" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label>Stock Mínimo (Litros)</label>
-                        <input type="number" step="0.1" name="stock_minimo" class="form-control" required>
+                        <label class="form-label">Stock Mínimo (Litros)</label>
+                        <input type="number" step="0.1" min="10" name="stock_minimo" class="form-control" required>
+                        <small class="text-muted">El sistema alertará cuando el stock caiga bajo este límite.</small>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Tanque</button>
                 </div>
             </form>
         </div>

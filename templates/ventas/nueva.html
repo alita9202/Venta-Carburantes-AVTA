@@ -2,42 +2,56 @@
 
 {% block content %}
 <div class="mb-4 d-flex justify-content-between align-items-center">
-    <h2>Procesar Nueva Venta</h2>
-    <a href="{{ url_for('ventas') }}" class="btn btn-secondary">Volver al Historial</a>
+    <h2><i class="bi bi-fuel-pump text-success"></i> Procesar Nueva Venta</h2>
+    <a href="{{ url_for('ventas') }}" class="btn btn-outline-secondary"><i class="bi bi-clock-history"></i> Historial de Ventas</a>
 </div>
 
-<div class="card">
-    <div class="card-body">
-        <form method="POST">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Placa del Vehículo o CI/NIT del Cliente</label>
-                    <input type="text" class="form-control" name="placa_documento" placeholder="Ej: ABC123 o 1234567" required>
-                    <small class="text-muted">Si no existe, se registrará automáticamente.</small>
+<div class="row">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-dark text-white py-3">
+                <h5 class="mb-0"><i class="bi bi-cart-plus"></i> Formulario de Despacho Controlado</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="alert alert-info border-info mb-4">
+                    <i class="bi bi-info-circle-fill"></i> Ingrese la placa o documento del cliente. Si no está registrado en el sistema, se creará un perfil automático y se le asignará el cupo base.
                 </div>
                 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Tanque a Despachar</label>
-                    <select name="id_tanque" class="form-control" required>
-                        <option value="">Seleccione un tanque...</option>
-                        {% for t in tanques %}
-                            <option value="{{ t.id_tanque }}">{{ t.identificador }} ({{ t.tipo_carburante }}) - Stock Actual: {{ t.stock_actual }}L</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
+                <form method="POST">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Placa del Vehículo o CI/NIT <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control form-control-lg" name="placa_documento" placeholder="Ej: ABC1234 o 1234567" required autofocus>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Tanque a Despachar <span class="text-danger">*</span></label>
+                            <select name="id_tanque" class="form-select form-select-lg" required>
+                                <option value="">Seleccione un tanque...</option>
+                                {% for t in tanques %}
+                                    <option value="{{ t.id_tanque }}">
+                                        {{ t.identificador }} - {{ t.tipo_carburante }} (Stock: {{ "{:,.1f}".format(t.stock_actual) }}L)
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Cantidad Solicitada (Litros)</label>
-                    <input type="number" step="0.1" class="form-control form-control-lg" name="litros_solicitados" required>
-                </div>
-            </div>
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-success fs-5">Cantidad Solicitada (Litros) <span class="text-danger">*</span></label>
+                            <input type="number" step="0.1" min="1" class="form-control form-control-lg text-center fw-bold text-success fs-3" name="litros_solicitados" placeholder="0.0" required>
+                        </div>
+                    </div>
 
-            <div class="d-grid mt-4">
-                <button type="submit" class="btn btn-success btn-lg">Validar y Procesar Venta</button>
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-success btn-lg py-3 fw-bold fs-5 shadow-sm">
+                            <i class="bi bi-check-circle"></i> Validar y Procesar Venta
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 {% endblock %}

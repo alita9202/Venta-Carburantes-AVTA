@@ -14,6 +14,15 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    try:
+        from seed import seed_data
+        seed_data()
+    except Exception as e:
+        print("Error al hacer seed_data:", e)
+
+@app.route('/health')
+def health():
+    return 'OK'
 
 # Decorador simple para requerir login
 def login_required(f):
@@ -50,24 +59,36 @@ def logout():
 @login_required
 def dashboard():
     total_clientes = Cliente.query.count()
+    clientes_activos = Cliente.query.filter_by(estado='Activo').count()
+    clientes_suspendidos = Cliente.query.filter_by(estado='Suspendido').count()
     total_tanques = Tanque.query.count()
     stock_total = db.session.query(db.func.sum(Tanque.stock_actual)).scalar() or 0
     ventas_autorizadas = VentaSalida.query.filter_by(estado_venta='Autorizada').count()
+    ventas_limitadas = VentaSalida.query.filter_by(estado_venta='Limitada').count()
     ventas_bloqueadas = VentaSalida.query.filter_by(estado_venta='Bloqueada').count()
+    ingresos_registrados = IngresoTanque.query.count()
     
     # Alertas
     alertas_stock = Tanque.query.filter(Tanque.stock_actual < Tanque.stock_minimo).all()
+    clientes_suspendidos_lista = Cliente.query.filter_by(estado='Suspendido').all()
+    ventas_problematicas = VentaSalida.query.filter(VentaSalida.estado_venta.in_(['Limitada', 'Bloqueada'])).order_by(VentaSalida.fecha_hora.desc()).limit(5).all()
     
-    # Últimas ventas
-    ultimas_ventas = VentaSalida.query.order_by(VentaSalida.fecha_hora.desc()).limit(5).all()
+    # Últimas ventas (8)
+    ultimas_ventas = VentaSalida.query.order_by(VentaSalida.fecha_hora.desc()).limit(8).all()
 
     return render_template('dashboard.html', 
                            total_clientes=total_clientes,
+                           clientes_activos=clientes_activos,
+                           clientes_suspendidos=clientes_suspendidos,
                            total_tanques=total_tanques,
                            stock_total=stock_total,
                            ventas_autorizadas=ventas_autorizadas,
+                           ventas_limitadas=ventas_limitadas,
                            ventas_bloqueadas=ventas_bloqueadas,
+                           ingresos_registrados=ingresos_registrados,
                            alertas_stock=alertas_stock,
+                           clientes_suspendidos_lista=clientes_suspendidos_lista,
+                           ventas_problematicas=ventas_problematicas,
                            ultimas_ventas=ultimas_ventas)
 
 # --- EMPRESA ---
@@ -112,6 +133,10 @@ def crear_tanque():
     capacidad_maxima = float(request.form.get('capacidad_maxima'))
     stock_minimo = float(request.form.get('stock_minimo'))
     
+    if stock_minimo > capacidad_maxima:
+        flash('El stock mínimo no puede superar la capacidad máxima', 'danger')
+        return redirect(url_for('tanques'))
+        
     empresa = Empresa.query.first()
     nuevo = Tanque(identificador=identificador, tipo_carburante=tipo_carburante, 
                    capacidad_maxima=capacidad_maxima, stock_minimo=stock_minimo, 
@@ -147,8 +172,15 @@ def crear_cliente():
     nombre = request.form.get('nombre_razon_social')
     placa = request.form.get('placa_vehiculo')
     tipo = request.form.get('tipo_cliente')
+    estado = request.form.get('estado', 'Activo')
     
-    nuevo = Cliente(ci_nit=ci_nit, nombre_razon_social=nombre, placa_vehiculo=placa, tipo_cliente=tipo)
+    # Validar duplicados
+    existente = Cliente.query.filter((Cliente.ci_nit == ci_nit) | (Cliente.placa_vehiculo == placa)).first()
+    if existente:
+        flash(f'Ya existe un cliente con el CI/NIT {existente.ci_nit} o la placa {existente.placa_vehiculo}', 'danger')
+        return redirect(url_for('clientes'))
+    
+    nuevo = Cliente(ci_nit=ci_nit, nombre_razon_social=nombre, placa_vehiculo=placa, tipo_cliente=tipo, estado=estado)
     db.session.add(nuevo)
     db.session.commit()
     flash('Cliente registrado', 'success')
@@ -179,7 +211,7 @@ def ingresos():
 
         tanque = Tanque.query.get(id_tanque)
         if tanque.stock_actual + litros > tanque.capacidad_maxima:
-            flash('El ingreso supera la capacidad máxima del tanque', 'danger')
+            flash(f'El ingreso supera la capacidad máxima del tanque ({tanque.capacidad_maxima}L). Stock actual: {tanque.stock_actual}L', 'danger')
             return redirect(url_for('ingresos'))
             
         ingreso = IngresoTanque(id_tanque=id_tanque, litros_ingresados=litros, numero_factura=factura, proveedor=proveedor)
@@ -190,9 +222,14 @@ def ingresos():
         flash('Ingreso registrado correctamente', 'success')
         return redirect(url_for('ingresos'))
         
-    lista_ingresos = IngresoTanque.query.order_by(IngresoTanque.fecha_hora.desc()).all()
+    tanque_id = request.args.get('tanque_id')
+    query = IngresoTanque.query
+    if tanque_id:
+        query = query.filter_by(id_tanque=tanque_id)
+        
+    lista_ingresos = query.order_by(IngresoTanque.fecha_hora.desc()).all()
     tanques_list = Tanque.query.all()
-    return render_template('ingresos/index.html', ingresos=lista_ingresos, tanques=tanques_list)
+    return render_template('ingresos/index.html', ingresos=lista_ingresos, tanques=tanques_list, tanque_filtro=tanque_id)
 
 # --- VENTAS ---
 @app.route('/ventas')

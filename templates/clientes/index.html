@@ -2,14 +2,24 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Gestión de Clientes</h2>
+    <h2>Directorio de Clientes</h2>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearClienteModal">
         <i class="bi bi-person-plus"></i> Nuevo Cliente
     </button>
 </div>
 
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <form class="d-flex gap-2">
+            <!-- Funcionalidad de búsqueda por JS simple para la tabla -->
+            <input type="text" id="searchInput" class="form-control form-control-lg" placeholder="Buscar por CI, Placa o Nombre..." onkeyup="filterTable()">
+            <button type="button" class="btn btn-primary"><i class="bi bi-search"></i> Buscar</button>
+        </form>
+    </div>
+</div>
+
 <div class="table-container">
-    <table class="table table-hover align-middle">
+    <table class="table table-hover align-middle" id="clientesTable">
         <thead>
             <tr>
                 <th>CI/NIT</th>
@@ -22,28 +32,38 @@
         </thead>
         <tbody>
             {% for cliente in clientes %}
-            <tr>
-                <td>{{ cliente.ci_nit }}</td>
+            <tr class="{% if cliente.estado == 'Suspendido' %}table-danger{% endif %}">
+                <td class="fw-bold">{{ cliente.ci_nit }}</td>
                 <td>{{ cliente.nombre_razon_social }}</td>
-                <td><span class="badge bg-secondary">{{ cliente.placa_vehiculo }}</span></td>
-                <td>{{ cliente.tipo_cliente }}</td>
+                <td><span class="badge bg-dark fs-6">{{ cliente.placa_vehiculo }}</span></td>
                 <td>
-                    {% if cliente.estado == 'Activo' %}
-                        <span class="badge bg-success">Activo</span>
+                    {% if cliente.tipo_cliente == 'Particular' %}
+                        <span class="badge bg-info text-dark"><i class="bi bi-person"></i> Particular</span>
+                    {% elif cliente.tipo_cliente == 'Transporte Publico' %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-bus-front"></i> Transporte Público</span>
                     {% else %}
-                        <span class="badge bg-danger">Suspendido</span>
+                        <span class="badge bg-primary"><i class="bi bi-building"></i> Empresa</span>
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{{ url_for('cambiar_estado_cliente', id=cliente.id_cliente) }}" class="btn btn-sm btn-{{ 'danger' if cliente.estado == 'Activo' else 'success' }}">
+                    {% if cliente.estado == 'Activo' %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle"></i> Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger"><i class="bi bi-slash-circle"></i> Suspendido</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('cambiar_estado_cliente', id=cliente.id_cliente) }}" class="btn btn-sm btn-outline-{{ 'danger' if cliente.estado == 'Activo' else 'success' }}" title="Cambiar Estado">
                         {% if cliente.estado == 'Activo' %}
-                            <i class="bi bi-slash-circle"></i> Suspender
+                            <i class="bi bi-lock-fill"></i> Bloquear
                         {% else %}
-                            <i class="bi bi-check-circle"></i> Activar
+                            <i class="bi bi-unlock-fill"></i> Activar
                         {% endif %}
                     </a>
                 </td>
             </tr>
+            {% else %}
+            <tr><td colspan="6" class="text-center text-muted">No hay clientes registrados en el sistema.</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -53,39 +73,75 @@
 <div class="modal fade" id="crearClienteModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Nuevo Cliente</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Nuevo Cliente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <form action="{{ url_for('crear_cliente') }}" method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>CI / NIT</label>
+                        <label class="form-label">CI / NIT <span class="text-danger">*</span></label>
                         <input type="text" name="ci_nit" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label>Nombre / Razón Social</label>
+                        <label class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
                         <input type="text" name="nombre_razon_social" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label>Placa Vehículo</label>
-                        <input type="text" name="placa_vehiculo" class="form-control" required>
+                        <label class="form-label">Placa Vehículo <span class="text-danger">*</span></label>
+                        <input type="text" name="placa_vehiculo" class="form-control" placeholder="Ej: ABC1234" required>
                     </div>
-                    <div class="mb-3">
-                        <label>Tipo de Cliente</label>
-                        <select name="tipo_cliente" class="form-control" required>
-                            <option value="Particular">Particular</option>
-                            <option value="Transporte Publico">Transporte Público</option>
-                            <option value="Empresa">Empresa</option>
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Tipo de Cliente</label>
+                            <select name="tipo_cliente" class="form-select" required>
+                                <option value="Particular">Particular</option>
+                                <option value="Transporte Publico">Transporte Público</option>
+                                <option value="Empresa">Empresa</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Estado Inicial</label>
+                            <select name="estado" class="form-select" required>
+                                <option value="Activo">Activo</option>
+                                <option value="Suspendido">Suspendido</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar Cliente</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterTable() {
+    let input = document.getElementById("searchInput");
+    let filter = input.value.toUpperCase();
+    let table = document.getElementById("clientesTable");
+    let tr = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < tr.length; i++) {
+        let tdCI = tr[i].getElementsByTagName("td")[0];
+        let tdNombre = tr[i].getElementsByTagName("td")[1];
+        let tdPlaca = tr[i].getElementsByTagName("td")[2];
+        if (tdCI || tdNombre || tdPlaca) {
+            let txtCI = tdCI.textContent || tdCI.innerText;
+            let txtNombre = tdNombre.textContent || tdNombre.innerText;
+            let txtPlaca = tdPlaca.textContent || tdPlaca.innerText;
+            if (txtCI.toUpperCase().indexOf(filter) > -1 || txtNombre.toUpperCase().indexOf(filter) > -1 || txtPlaca.toUpperCase().indexOf(filter) > -1) {
+                tr[i].style.display = "";
+            } else {
+                tr[i].style.display = "none";
+            }
+        }
+    }
+}
+</script>
 {% endblock %}
