@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Gestión de Clientes</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#crearClienteModal">
+        <i class="bi bi-person-plus"></i> Nuevo Cliente
+    </button>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>CI/NIT</th>
+                <th>Nombre / Razón Social</th>
+                <th>Placa</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr>
+                <td>{{ cliente.ci_nit }}</td>
+                <td>{{ cliente.nombre_razon_social }}</td>
+                <td><span class="badge bg-secondary">{{ cliente.placa_vehiculo }}</span></td>
+                <td>{{ cliente.tipo_cliente }}</td>
+                <td>
+                    {% if cliente.estado == 'Activo' %}
+                        <span class="badge bg-success">Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Suspendido</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('cambiar_estado_cliente', id=cliente.id_cliente) }}" class="btn btn-sm btn-{{ 'danger' if cliente.estado == 'Activo' else 'success' }}">
+                        {% if cliente.estado == 'Activo' %}
+                            <i class="bi bi-slash-circle"></i> Suspender
+                        {% else %}
+                            <i class="bi bi-check-circle"></i> Activar
+                        {% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Crear Cliente -->
+<div class="modal fade" id="crearClienteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nuevo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('crear_cliente') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>CI / NIT</label>
+                        <input type="text" name="ci_nit" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Nombre / Razón Social</label>
+                        <input type="text" name="nombre_razon_social" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Placa Vehículo</label>
+                        <input type="text" name="placa_vehiculo" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Tipo de Cliente</label>
+                        <select name="tipo_cliente" class="form-control" required>
+                            <option value="Particular">Particular</option>
+                            <option value="Transporte Publico">Transporte Público</option>
+                            <option value="Empresa">Empresa</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

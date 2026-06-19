@@ -1,0 +1,106 @@
+:root {
+  --primary-color: #0b2e59;
+  --secondary-color: #2b5b84;
+  --light-bg: #f4f6f9;
+  --white: #ffffff;
+  --text-dark: #333333;
+}
+
+body {
+  background-color: var(--light-bg);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: var(--text-dark);
+}
+
+/* Sidebar and Navbar */
+.navbar-brand {
+  font-weight: bold;
+  color: var(--primary-color) !important;
+}
+
+.nav-link {
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--secondary-color);
+  background-color: #e9ecef;
+  border-radius: 5px;
+}
+
+/* Cards */
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.card-header {
+  background-color: var(--white);
+  border-bottom: 1px solid #e9ecef;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+.metric-card {
+  text-align: center;
+  padding: 20px;
+}
+
+.metric-card .icon {
+  font-size: 2rem;
+  color: var(--secondary-color);
+  margin-bottom: 10px;
+}
+
+.metric-card h3 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin: 0;
+}
+
+/* Tables */
+.table-container {
+  background: var(--white);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.table thead th {
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-bottom: none;
+}
+
+/* Utilities */
+.text-danger-row td {
+  background-color: #ffe6e6 !important;
+}
+
+.login-container {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 30px;
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.login-title {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
+}

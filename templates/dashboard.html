@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard de Gestión</h2>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <i class="bi bi-people icon"></i>
+            <h5>Clientes</h5>
+            <h3>{{ total_clientes }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <i class="bi bi-droplet icon"></i>
+            <h5>Tanques</h5>
+            <h3>{{ total_tanques }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <i class="bi bi-bar-chart icon"></i>
+            <h5>Stock Total (L)</h5>
+            <h3>{{ stock_total }}</h3>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <i class="bi bi-check-circle icon text-success"></i>
+            <h5>Ventas Autorizadas</h5>
+            <h3>{{ ventas_autorizadas }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                Alertas de Stock Mínimo
+            </div>
+            <div class="card-body">
+                {% if alertas_stock %}
+                    <ul class="list-group">
+                        {% for tanque in alertas_stock %}
+                            <li class="list-group-item list-group-item-danger d-flex justify-content-between align-items-center">
+                                Tanque {{ tanque.identificador }} ({{ tanque.tipo_carburante }})
+                                <span class="badge bg-danger rounded-pill">{{ tanque.stock_actual }} L (Min: {{ tanque.stock_minimo }})</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-success mb-0"><i class="bi bi-check-circle"></i> Todos los tanques tienen stock suficiente.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                Últimas Ventas
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Estado</th>
+                            <th>Litros</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for venta in ultimas_ventas %}
+                        <tr>
+                            <td>{{ venta.cliente.placa_vehiculo }}</td>
+                            <td>
+                                {% if venta.estado_venta == 'Autorizada' %}
+                                    <span class="badge bg-success">Autorizada</span>
+                                {% elif venta.estado_venta == 'Limitada' %}
+                                    <span class="badge bg-warning text-dark">Limitada</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Bloqueada</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ venta.litros_autorizados }} / {{ venta.litros_solicitados }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% if not ultimas_ventas %}
+                        <tr><td colspan="3" class="text-center">No hay ventas registradas.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

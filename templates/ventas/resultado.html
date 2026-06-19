@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <h2>Resultado de Validación</h2>
+    <a href="{{ url_for('nueva_venta') }}" class="btn btn-primary">Nueva Venta</a>
+</div>
+
+<div class="card">
+    <div class="card-header text-center fs-4
+        {% if venta.estado_venta == 'Autorizada' %}bg-success text-white
+        {% elif venta.estado_venta == 'Limitada' %}bg-warning
+        {% else %}bg-danger text-white{% endif %}
+    ">
+        Venta {{ venta.estado_venta }}
+    </div>
+    <div class="card-body">
+        <h5 class="text-center mb-4">{{ venta.mensaje_validacion }}</h5>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Cliente (Placa):</strong> {{ cliente.placa_vehiculo }}</p>
+                <p><strong>Estado Cliente:</strong> {{ cliente.estado }}</p>
+                <p><strong>Tanque:</strong> {{ venta.tanque.identificador }} ({{ venta.tanque.tipo_carburante }})</p>
+                <p><strong>Fecha/Hora:</strong> {{ venta.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Promedio Semanal (28d):</strong> {{ venta.promedio_semanal }} L</p>
+                <p><strong>Límite Permitido:</strong> {{ venta.limite_permitido }} L</p>
+                <p><strong>Litros Solicitados:</strong> {{ venta.litros_solicitados }} L</p>
+                <p class="fs-4"><strong>Litros Autorizados:</strong> <span class="badge bg-primary">{{ venta.litros_autorizados }} L</span></p>
+            </div>
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('ventas') }}" class="btn btn-secondary">Ir a Historial</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

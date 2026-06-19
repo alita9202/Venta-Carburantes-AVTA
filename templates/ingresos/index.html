@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Registro de Ingresos de Carburante</h2>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#ingresoModal">
+        <i class="bi bi-box-arrow-in-down"></i> Registrar Ingreso
+    </button>
+</div>
+
+<div class="table-container">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Fecha/Hora</th>
+                <th>Tanque</th>
+                <th>Litros Ingresados</th>
+                <th>Factura/Remisión</th>
+                <th>Proveedor</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ingreso in ingresos %}
+            <tr>
+                <td>{{ ingreso.fecha_hora.strftime('%Y-%m-%d %H:%M') }}</td>
+                <td>{{ ingreso.tanque.identificador }} ({{ ingreso.tanque.tipo_carburante }})</td>
+                <td><strong class="text-success">+{{ ingreso.litros_ingresados }} L</strong></td>
+                <td>{{ ingreso.numero_factura }}</td>
+                <td>{{ ingreso.proveedor }}</td>
+            </tr>
+            {% endfor %}
+            {% if not ingresos %}
+            <tr><td colspan="5" class="text-center">No hay registros de ingresos.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Ingreso -->
+<div class="modal fade" id="ingresoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Nuevo Ingreso</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('ingresos') }}" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Tanque Destino</label>
+                        <select name="id_tanque" class="form-control" required>
+                            <option value="">Seleccione un tanque...</option>
+                            {% for t in tanques %}
+                                <option value="{{ t.id_tanque }}">{{ t.identificador }} ({{ t.tipo_carburante }}) - Stock: {{ t.stock_actual }}L</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label>Litros Ingresados</label>
+                        <input type="number" step="0.1" name="litros_ingresados" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Número de Factura o Remisión</label>
+                        <input type="text" name="numero_factura" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Proveedor</label>
+                        <input type="text" name="proveedor" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Registrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
